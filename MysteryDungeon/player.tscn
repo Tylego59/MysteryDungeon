@@ -54,6 +54,7 @@ platform_floor_layers = 4294967295
 platform_wall_layers = 0
 safe_margin = 0.08
 script = ExtResource("1_onrkg")
+speed = 300.0
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
 texture = ExtResource("2_i3pqv")

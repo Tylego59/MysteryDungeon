@@ -3,4 +3,4 @@ from py4godot import gdproperty, gdclass, gdnativetype
 
 @gdclass
 class Player(Area2D):
-	speed: int = gdproperty(gdnativetype(int), 400)
+	speed: int = gdproperty(gdnativetype(int), 400
