@@ -11,6 +11,7 @@ config_version=5
 [application]
 
 config/name="Mystery Dungeon"
+run/main_scene="uid://df0gofc8q4llr"
 config/features=PackedStringArray("4.5", "Forward Plus")
 config/icon="res://icon.svg"
 
