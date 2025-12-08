@@ -1,6 +1,6 @@
 [gd_scene load_steps=5 format=4 uid="uid://ch533x8m708jm"]
 
-[ext_resource type="Texture2D" uid="uid://n3oud0xt4dis" path="res://dungeon_generation/testTiles.webp" id="1_0xm2m"]
+[ext_resource type="Texture2D" uid="uid://n3oud0xt4dis" path="res://dungeon_gen/testTiles.webp" id="1_0xm2m"]
 [ext_resource type="PackedScene" uid="uid://df0gofc8q4llr" path="res://player.tscn" id="1_ig7tw"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_h2yge"]
