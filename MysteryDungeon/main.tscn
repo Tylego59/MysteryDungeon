@@ -2517,3 +2517,5 @@ tile_map_data = PackedByteArray("AADV//L/AAAAAAAAAADV//b/AAAAAAQAAADV//f/AAAAAAU
 tile_set = SubResource("TileSet_1bvp3")
 
 [node name="CharacterBody2D" parent="." instance=ExtResource("1_ig7tw")]
+
+[node name="Camera2D" type="Camera2D" parent="."]
