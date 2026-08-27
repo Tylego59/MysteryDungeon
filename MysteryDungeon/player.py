@@ -1,105 +1,79 @@
-# IMPORTANT: The exact import paths (e.g., py4godot.classes.CharacterBody2D) 
-# may vary slightly depending on your specific Python4Godot version and Godot 
-# version (3.x vs 4.x). If you see an error, check the py4godot documentation
-# for the precise location of the CharacterBody2D class.
-
-# Import core classes used for movement and input
+# Import core classes
+from py4godot.classes.Area2D import Area2D
 from py4godot.classes.core import Vector2
-from py4godot.classes.CharacterBody2D import CharacterBody2D # Assuming this path
-from py4godot.classes.Input import Input # Assuming this path
+from py4godot.classes.Input import Input
+from py4godot.classes.DisplayServer import DisplayServer
 
-# NEW: Import gdproperty to expose variables to the Inspector
-from py4godot import gdproperty 
+# Import py4godot decorators and types
+from py4godot import gdproperty, gdclass
 
-# Note: The older py4godot usually requires classes to be manually extended.
-# No @gdclass decorator is typically needed for extending engine classes.
-
-class Player(CharacterBody2D):
+@gdclass
+class Player(Area2D):
 	"""
-	Python script for a 2D top-down character using the older py4godot library structure.
-	Uses simple, snappy movement (zero friction/deceleration).
+	Area2D-based movement script compatible with py4godot.
+	This uses manual position updates, as is common for Area2D nodes.
 	"""
-
-	# --- Configuration Variables (Exported Metadata) ---
-	# This exposes 'speed' to the Godot Inspector.
-	# NOTE: Ensure the gdproperty call is completely closed with ')' at the end.
-	speed: float = gdproperty(float, 300.0)
-
-	# Internal variable to hold the Input singleton instance
-	input_instance: Input = None 
-
-	# --- Godot Lifecycle Methods ---
-
+	
+	# 1. EXPORTED PROPERTIES (Metadata)
+	# The float type should be used for better compatibility with delta time calculations.
+	speed: float = gdproperty(float, 400.0)
+	
+	# Internal class variables
+	screen_size: Vector2 = Vector2.new0()
+	input_instance: Input = None
+	
 	def _init(self) -> None:
-		"""
-		Added for compatibility. Older py4godot often requires an explicit
-		initialization method for proper class registration.
-		"""
+		"""Required for py4godot compatibility."""
 		pass
-
+		
 	def _ready(self) -> None:
 		"""
-		Called when the node is ready. Accesses and demonstrates node metadata.
+		Called when the node is ready. Sets up singleton access and screen size.
 		"""
-		print("Player script is ready. Using simple movement.")
-		
-		# --- API Documentation Change: Access Input Singleton ---
-		# Per the py4godot documentation, singletons should be accessed via get_instance().
+		# Get Singleton Instances
 		self.input_instance = Input.get_instance()
 		
-		# ----------------------------------------------------
-		# 1. SETTING ARBITRARY METADATA (Editor or Runtime)
-		# This metadata is saved with the scene.
-		self.set_meta("character_type", "Protagonist")
-		self.set_meta("initial_health", 100)
-		# ----------------------------------------------------
-
-		# Accessing Standard Metadata: Node Name and Path
-		node_name = self.get_name()
-		node_path = self.get_path() 
+		# Access the DisplayServer to get screen size (Viewport is also an option)
+		display_server = DisplayServer.get_instance()
+		self.screen_size = display_server.screen_get_size()
 		
-		# ----------------------------------------------------
-		# 2. RETRIEVING METADATA
-		char_type = self.get_meta("character_type")
-		initial_hp = self.get_meta("initial_health")
-		# ----------------------------------------------------
-
-		print(f"--- Node Metadata ---")
-		print(f"Node Name: {node_name}")
-		print(f"Scene Path: {node_path}")
-		print(f"Exported Speed: {self.speed}")
-		print(f"Custom Meta: Type='{char_type}', HP='{initial_hp}'")
-		print("---------------------")
-
-		# Initialize velocity to a zero vector.
-		self.velocity = Vector2(0, 0)
-
-	def _physics_process(self, delta: float) -> None:
+		print(f"Player initialized. Screen size: ({self.screen_size.x}, {self.screen_size.y})")
+		
+		
+	def _process(self, delta: float) -> None:
 		"""
-		Called every physics frame. Handles movement input and physics.
+		Called every frame. Handles input and manual position updating.
 		"""
-		# 1. Get raw input direction as a normalized Vector2 using the instance.
+		# 1. Set velocity to zero initially
+		velocity: Vector2 = Vector2.new0()
 		
-		# NOTE: We now use self.input_instance instead of the static Input class.
-		input_x = (self.input_instance.get_action_strength("ui_right") - 
-				   self.input_instance.get_action_strength("ui_left"))
-		input_y = (self.input_instance.get_action_strength("ui_down") - 
-				   self.input_instance.get_action_strength("ui_up"))
-
-		input_vector = Vector2(input_x, input_y)
+		# 2. Get Input using the singleton instance
+		if self.input_instance.is_action_pressed("right"):
+			velocity.x += 1.0
+		if self.input_instance.is_action_pressed("left"):
+			velocity.x -= 1.0
+		if self.input_instance.is_action_pressed("down"):
+			velocity.y += 1.0
+		if self.input_instance.is_action_pressed("up"):
+			velocity.y -= 1.0
 		
-		# 2. Movement Calculation
-		if input_vector.length_squared() > 0:
-			# If there is input, set velocity based on speed.
-			self.velocity = input_vector.normalized() * self.speed
-		else:
-			# If no input, stop immediately. (Simple Movement)
-			self.velocity = Vector2(0, 0)
-
-		# 3. Apply motion
-		self.move_and_slide()
+		# 3. Calculate final velocity
+		if velocity.length_squared() > 0:
+			# Normalize and apply speed (using self.speed)
+			velocity = velocity.normalized() * self.speed
+			
+		# 4. Calculate new position
+		new_position = self.get_position() + velocity * delta
 		
-		# --- DEBUG: CHECK VELOCITY ---
-		# If this prints a non-zero value, the code is working and the issue is configuration.
-		if self.velocity.length_squared() > 1:
-			 print(f"Velocity is: ({self.velocity.x:.2f}, {self.velocity.y:.2f})")
+		# 5. Clamp the position to keep the player on screen
+		# Note: Vector2.new0() is (0, 0)
+		# We assume get_position() and set_position() methods exist for Area2D
+		# Clamping ensures the new position is between (0, 0) and the screen size.
+		new_position.x = max(0.0, min(new_position.x, self.screen_size.x))
+		new_position.y = max(0.0, min(new_position.y, self.screen_size.y))
+		
+		# 6. Apply the new position
+		self.set_position(new_position)
+		
+		# Optional Debugging:
+		# print(f"Pos: ({new_position.x:.1f}, {new_position.y:.1f}), Speed: {self.speed}")
